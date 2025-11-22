@@ -77,33 +77,96 @@ order by a.country_id, rank_in_country
 
 --Calculate each customer’s contribution percentage to country-level sales.
 
-SELECT
+select
     a.cust_id,
     a.country_id,
-    SUM(b.amount_sold) AS customer_total_sales,
+    sum(b.amount_sold) as customer_total_sales,
     country_totals.country_sales,
-    ROUND((SUM(b.amount_sold) / country_totals.country_sales) * 100, 2) AS contribution_percentage
-FROM sh.customers a
-INNER JOIN sh.sales b ON a.cust_id = b.cust_id
-INNER JOIN (
-    SELECT
+    round((sum(b.amount_sold) / country_totals.country_sales) * 100, 2) as contribution_percentage
+from sh.customers a
+inner join sh.sales b on a.cust_id = b.cust_id
+inner join (
+    select
         country_id,
-        SUM(amount_sold) AS country_sales
-    FROM sh.customers c
-    INNER JOIN sh.sales s ON c.cust_id = s.cust_id
-    GROUP BY country_id
-) country_totals ON a.country_id = country_totals.country_id
-GROUP BY a.cust_id, a.country_id, country_totals.country_sales
-ORDER BY a.country_id, contribution_percentage DESC;
+        sum(amount_sold) as country_sales
+    from sh.customers c
+    inner join sh.sales s on c.cust_id = s.cust_id
+    group by country_id
+) country_totals on a.country_id = country_totals.country_id
+group by a.cust_id, a.country_id, country_totals.country_sales
+order by a.country_id, contribution_percentage desc;
 
 --Identify customers whose sales have decreased compared to previous month.
 
+with monthly_sales as (
+    select
+        cust_id,
+        to_char(time_id, 'yyyy-mm') as year_month,
+        sum(amount_sold) as total_sales
+    from sh.sales
+    group by cust_id, to_char(time_id, 'yyyy-mm')
+),
+sales_with_lag as (
+    select
+        cust_id,
+        year_month,
+        total_sales,
+        lag(total_sales) over (partition by cust_id order by year_month) as prev_month_sales
+    from monthly_sales
+)
+select 
+    cust_id,
+    year_month,
+    total_sales,
+    prev_month_sales
+from sales_with_lag
+where prev_month_sales is not null
+  and total_sales < prev_month_sales
+order by cust_id, year_month;
 
 --Show customers who have never made a sale.
 
+select
+    a.cust_id,
+    a.cust_first_name || ' ' || a.cust_last_name as full_name
+from sh.customers a
+left join sh.sales b 
+on a.cust_id = b.CUST_ID
+where b.cust_id is null;
 
 --Find correlation between credit limit and total sales (using GROUP BY + analytics).
 
+with customer_sales as (
+    select
+        a.cust_id,
+        max(a.cust_credit_limit) as credit_limit,
+        sum(b.amount_sold) as total_sales
+    from sh.customers a
+    left join sh.sales b on a.cust_id = b.cust_id
+    group by a.cust_id
+)
+select
+    corr(credit_limit, total_sales) as credit_sales_correlation
+from customer_sales;
 
 --Show moving average of monthly sales per customer.
 
+with monthly_sales as (
+    select
+        cust_id,
+        to_char(time_id, 'yyyy-mm') as year_month,
+        sum(amount_sold) as total_sales
+    from sh.sales
+    group by cust_id, to_char(time_id, 'yyyy-mm')
+)
+select
+    cust_id,
+    year_month,
+    total_sales,
+    avg(total_sales) over (
+        partition by cust_id
+        order by year_month
+        rows between 2 preceding and current row
+    ) as moving_avg_sales
+from monthly_sales
+order by cust_id, year_month;
