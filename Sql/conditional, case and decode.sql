@@ -1,4 +1,4 @@
-Categorize customers into income tiers: Platinum, Gold, Silver, Bronze.
+--Categorize customers into income tiers: Platinum, Gold, Silver, Bronze.
 
 SELECT 
     cust_id,
@@ -13,7 +13,7 @@ SELECT
     END AS tier
 FROM sh.customers;
 
-Display “High”, “Medium”, or “Low” income categories based on credit limit.
+--Display “High”, “Medium”, or “Low” income categories based on credit limit.
 
 SELECT 
     cust_id,
@@ -27,14 +27,14 @@ SELECT
     END AS tier
 FROM sh.customers;
 
-Replace NULL income levels with “Unknown” using NVL.
+--Replace NULL income levels with “Unknown” using NVL.
 
 select 
     cust_id,
     nvl(cust_income_level, 'Unknown') as non_value
 from sh.customers;
 
-Show customer details and mark whether they have above-average credit limit or not.
+--Show customer details and mark whether they have above-average credit limit or not.
 
 select
     cust_id,
@@ -46,7 +46,7 @@ select
     end as average
 from sh.customers
 
-Use DECODE to convert marital status codes (S/M/D) into full text.
+--Use DECODE to convert marital status codes (S/M/D) into full text.
 
 select
     cust_id,
@@ -59,7 +59,7 @@ select
     )
 from sh.customers
 
-Use CASE to show age group (≤30, 31–50, >50) from CUST_YEAR_OF_BIRTH.
+--Use CASE to show age group (≤30, 31–50, >50) from CUST_YEAR_OF_BIRTH.
 
 select
     cust_id,
@@ -72,7 +72,7 @@ select
 from sh.customers
 order by CUST_YEAR_OF_BIRTH desc
 
-Label customers as “Old Credit Holder” or “New Credit Holder” based on year of birth < 1980.
+--Label customers as “Old Credit Holder” or “New Credit Holder” based on year of birth < 1980.
 
 select 
     cust_id,
@@ -83,7 +83,7 @@ select
     end as Credit_holder
 from sh.customers
 	
-Create a loyalty tag — “Premium” if credit limit > 50,000 and income_level = ‘E’.
+--Create a loyalty tag — “Premium” if credit limit > 50,000 and income_level = ‘E’.
 
 select
     cust_id,
@@ -95,7 +95,7 @@ select
     end as tagging
 from sh.customers
 
-Assign grades (A–F) based on credit limit range using CASE.
+--Assign grades (A–F) based on credit limit range using CASE.
 
 SELECT
     cust_id,
@@ -111,7 +111,7 @@ SELECT
     END AS grade
 FROM sh.customers;
 
-Show country, state, and number of premium customers using conditional aggregation.
+--Show country, state, and number of premium customers using conditional aggregation.
 
 SELECT
     country_id,
