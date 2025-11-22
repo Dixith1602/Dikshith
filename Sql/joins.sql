@@ -77,6 +77,24 @@ order by a.country_id, rank_in_country
 
 --Calculate each customer’s contribution percentage to country-level sales.
 
+SELECT
+    a.cust_id,
+    a.country_id,
+    SUM(b.amount_sold) AS customer_total_sales,
+    country_totals.country_sales,
+    ROUND((SUM(b.amount_sold) / country_totals.country_sales) * 100, 2) AS contribution_percentage
+FROM sh.customers a
+INNER JOIN sh.sales b ON a.cust_id = b.cust_id
+INNER JOIN (
+    SELECT
+        country_id,
+        SUM(amount_sold) AS country_sales
+    FROM sh.customers c
+    INNER JOIN sh.sales s ON c.cust_id = s.cust_id
+    GROUP BY country_id
+) country_totals ON a.country_id = country_totals.country_id
+GROUP BY a.cust_id, a.country_id, country_totals.country_sales
+ORDER BY a.country_id, contribution_percentage DESC;
 
 --Identify customers whose sales have decreased compared to previous month.
 
