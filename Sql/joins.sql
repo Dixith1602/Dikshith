@@ -154,10 +154,10 @@ from customer_sales;
 with monthly_sales as (
     select
         cust_id,
-        to_char(time_id, 'yyyy-mm') as year_month,
+        to_char(time_id, 'mm-yyyy') as month_year,
         sum(amount_sold) as total_sales
     from sh.sales
-    group by cust_id, to_char(time_id, 'yyyy-mm')
+    group by cust_id, to_char(time_id, 'mm-yyyy')
 )
 select
     cust_id,
@@ -165,8 +165,8 @@ select
     total_sales,
     avg(total_sales) over (
         partition by cust_id
-        order by year_month
+        order by month_year
         rows between 2 preceding and current row
     ) as moving_avg_sales
 from monthly_sales
-order by cust_id, year_month;
+order by cust_id, month_year;
